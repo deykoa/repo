@@ -17,6 +17,7 @@
 x = input('vvidite ip-addres v formate 10.1.1.1: ')
 ip = x.split('.')
 ip[0]=int(ip[0])
+
 if x=='255.255.255.255':
     print('broadcast')
 elif x=='0.0.0.0':
