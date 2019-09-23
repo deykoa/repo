@@ -50,15 +50,11 @@ def create_network_map(filenames):
         with open(file) as f:
             conf=f.read()
             d.update(parse_neighbors(conf))
-            print(d)
     for key in d:
         if  key in d.values():
             keys_fordel.append(key)
-            print(keys_fordel)
     for keyy in keys_fordel[:int(len(keys_fordel)/2)]:
-        print(d[keyy])
         d.pop(keyy)
-    print(d)
     return d
 
 if __name__=='__main__':
