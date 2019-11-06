@@ -30,7 +30,7 @@ def parse_sh_cdp_neighbors(sh_cdp):
     device=re.search(r'(\S+)>',sh_cdp)
     dev=device.group(1)
     result={dev:{}}
-    matches=re.finditer(r'(\S+) *(\S+ \S+) *\d+.*\d+ *(\S+ \S+)',sh_cdp)
+    matches=re.finditer(r'(\S+) *(\S+ \S+) *\d+.* (\S+ \d\S+)',sh_cdp)
     for match in matches:
         result[dev][match.group(2)]={match.group(1):match.group(3)}
     return result
