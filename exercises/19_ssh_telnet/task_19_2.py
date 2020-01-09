@@ -47,7 +47,7 @@ commands = [
     'logging 10.255.255.1', 'logging buffered 20010', 'no logging console'
 ]
 
-def send_show_command(device,commands):
+def send_config_commands(device,commands):
 
     with netmiko.ConnectHandler(**device) as ssh:
         ssh.enable()
@@ -58,7 +58,7 @@ def send_show_command(device,commands):
 with open('devices.yaml') as f:
     devices = yaml.safe_load(f)
     for device in devices:
-        print(send_show_command(device,commands))
+        print(send_config_commands(device,commands))
         print('-'*20)
 
 
