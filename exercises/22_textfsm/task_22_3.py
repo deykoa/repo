@@ -18,11 +18,10 @@
 
 Проверить работу функции на примере вывода команды sh ip int br.
 '''
-from task_22_1a import parse_command_output
 import clitable
 def parse_command_dynamic(command_output,attributes_dict,index_file='index',templ_path='templates'):
     cli = clitable.CliTable(index_file,templ_path)
-    cli.ParseCmd(command_output,attributes)
+    cli.ParseCmd(command_output,attributes_dict)
     headers,tab=list(cli.header),[list(r) for r in cli] 
     result,intdict=[],{}
     for interf in tab:
