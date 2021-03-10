@@ -14,7 +14,6 @@ from datetime import date, timedelta
 from openpyxl import load_workbook
 from pdfrw import PdfWriter
 import pdfkit
-import win32com
 
 URL = 'http://pub-mex.dls.gov.ua/QLA/DocList.aspx'
 HEADERS = {'user-agent': 'Mzilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0', 'accept': '*/*'}
@@ -32,11 +31,18 @@ def get_content(html):
     soup = BeautifulSoup(html, 'html.parser')
     headders = soup.find_all('tr', class_='rGridHeader')
     table = soup.find('table', class_='rGrid')
-    dragg={'No /n з/п':[],'Дата і номер розпорядження/рішення/припису':[],'Назва лікарських засобів/n та перелік серій лікарських /n засобів, зазначених у розпорядженні/ рішенні/припис':[],'Результати перевірки щодо наявності зазначених лікарських засобів (у разі виявлення вказати кількість виявлених упаковок або зазначити: «відсутні» у разі відсутності таких':[],'Вжиті заходи у разі виявлення зазначених лікарських засобів*':[],'Підпис уповноваженої особи':[]}
+    dragg={'No з/п':[],
+           'Дата і номер розпорядження/рішення/припису':[],
+           'Дата одержання розпорядження/рішення/припису':[],
+           'Назва лікарських засобів/n та перелік серій лікарських /n засобів, зазначених у розпорядженні/ рішенні/припис':[],
+           'Результати перевірки щодо наявності зазначених лікарських засобів (у разі виявлення вказати кількість виявлених упаковок або зазначити: «відсутні» у разі відсутності таких':[],
+           'Вжиті заходи у разі виявлення зазначених лікарських засобів*':[],
+           'Підпис уповноваженої особи':[]}
     for row in table.find_all('tr',class_=re.compile('Row')):
         dragg['Назва лікарських засобів/n та перелік серій лікарських /n засобів, зазначених у розпорядженні/ рішенні/припис'].append(chek(row,'DrugName')+',Серiя №'+chek(row,'SerialNum')+','+chek(row,'Country'))
         dragg['Дата і номер розпорядження/рішення/припису'].append(chek(row,'RegDate'))
-        dragg['No /n з/п'].append('   ')
+        dragg['Дата одержання розпорядження/рішення/припису'].append(date.today().strftime('%d.%m.%Y')+'\n'+chek(row,'RegNum'))
+        dragg['No з/п'].append('   ')
         dragg['Результати перевірки щодо наявності зазначених лікарських засобів (у разі виявлення вказати кількість виявлених упаковок або зазначити: «відсутні» у разі відсутності таких'].append('   ') 
         if chek(row,'DocType') == 'пост. заборона ':
             postanova='знищення, повернення постачальнику'
@@ -54,27 +60,29 @@ def get_content(html):
     
     dd = pd.DataFrame(dragg)
     dd.to_excel('./drugs.xlsx',index=False)
-    if dragg['No /n з/п']:
-        send_mail()
+    if dragg['No з/п']:
+        return dragg
+    else:
+        return None
 
 def parse():
     d = date.today()
     date_end=d.strftime('%d.%m.%Y')
-    date_begin=(d-timedelta(days=5)).strftime('%d.%m.%Y')
+    date_begin=(d-timedelta(days=3)).strftime('%d.%m.%Y')
     print(date_begin, date_end)
-    params={'__EVENTTARGET':'ctl00$Content$fvParams$UpdateButton','ctl00$Content$fvParams$edtDocDateBegin':'{}'.format(date_begin),'ctl00$Content$fvParams$edtDocDateEnd':'24.03.2021'.format(date_end)}
+    params={'__EVENTTARGET':'ctl00$Content$fvParams$UpdateButton','ctl00$Content$fvParams$edtDocDateBegin':'{}'.format(date_begin),
+            'ctl00$Content$fvParams$edtDocDateEnd':'{}'.format(date_end)}
     html = get_html(URL,params)
     if html.status_code == 200:
         print('good')
-        #print(html.text)
         rows = get_content(html.text)
+        return rows
     else:
         print('Error')
-    return rows
+        return None
 
 def send_mail(fromadd,toadd,password):
-    convert_to_pdf4('drugs.xlsx','drugs.pdf')
-    filepath ='/home/vagrant/poliakova/drugs.pdf'
+    filepath ='./drugs.xlsx'
     basename = os.path.basename(filepath)
     address = toadd
 
@@ -82,7 +90,7 @@ def send_mail(fromadd,toadd,password):
     part = MIMEBase('application', "octet-stream")
     part.set_payload(open(filepath,"rb").read() )
     encoders.encode_base64(part)
-    part.add_header('Content-Disposition', 'attachment; filename="drugs.pdf"')
+    part.add_header('Content-Disposition', 'attachment; filename="drugs.xlsx"')
 
     # Compose message
     msg = MIMEMultipart()
@@ -135,7 +143,9 @@ def convert_to_pdf4(exelfile,pdfile):
     wb.ActiveSheet.ExportAsFixedFormat(0,pdfile)
     o.Quit()
 
-parse()
+if __name__=='__main__':
+    if parse():
+        send_mail()
 
 
 
