@@ -105,44 +105,6 @@ def send_mail(fromadd,toadd,password):
     server.sendmail(msg['From'], msg['To'], msg.as_string())
     server.quit()
 
-def convert_to_pdf(exelfile,pdfile):
-    df = pd.read_excel(exelfile)#input
-    df.to_html("file.html")#to html
-    pdfkit.from_file("file.html", pdfile)#to pdf
-
-def convert_to_pdf2(exelfile,pdfile):
-    wb = pd.read_excel(exelfile)
-    wb=PdfWriter()
-    wb.write(pdfile)
-
-def convert_to_pdf3(exelfile,pdfile):
-    workbook = load_workbook(exelfile, data_only=True)
-    worksheet = workbook.active
-    pw = PdfWriter(pdfile)
-    #pw.setFont('Courier', 12)
-    #pw.setHeader('Журнал бла бла бла')
-    #pw.setFooter('Generated using openpyxl and xtopdf')
-
-    ws_range = worksheet.iter_rows('A1:H13')
-    for row in ws_range:
-        s = ''
-        for cell in row:
-            if cell.value is None:
-                s += ' ' * 11
-            else:
-                s += str(cell.value).rjust(10) + ' '
-                pw.writeLine(s)
-                pw.savePage()
-                pw.close()
-def convert_to_pdf4(exelfile,pdfile):
-    o = win32com.client.Dispatch("Excel.Application")
-    o.Visible = False
-    o.DisplayAlerts = False
-    wb = o.Workbooks.Open(exelfile,pdfile)
-    wb.WorkSheets("sheet1").Select()
-    wb.ActiveSheet.ExportAsFixedFormat(0,pdfile)
-    o.Quit()
-
 if __name__=='__main__':
     if parse():
         send_mail()
