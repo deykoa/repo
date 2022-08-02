@@ -1,1 +1,0 @@
-print('cho za nah')
