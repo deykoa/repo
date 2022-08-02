@@ -65,7 +65,6 @@ def add_data_to_dhcp(list_of_hosts):
                 query = '''insert into dhcp (mac, ip, vlan, interface, switch, active) values (?, ?, ?, ?, ?, ?)'''
                 conn.execute(query, host)
 
-
 if __name__=='__main__':
     if os.path.exists('dhcp_snooping.db'):
         conn = sqlite3.connect('dhcp_snooping.db')
